@@ -1,0 +1,9 @@
+[package]
+name = "rust-yo-slack-adapter"
+version = "0.1.0"
+authors = ["Ryota Kameoka <kameoka.ryota@gmail.com>"]
+
+[dependencies]
+iron = "*"
+hyper = "*"
+rustc-serialize = "0.3"
