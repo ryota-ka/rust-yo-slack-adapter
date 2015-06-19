@@ -7,8 +7,12 @@ extern crate iron;
 use iron::prelude::*;
 use iron::status;
 
+
 extern crate rustc_serialize;
 use rustc_serialize::json;
+
+extern crate url;
+use url::percent_encoding;
 
 #[derive(Debug)]
 enum Accessory {
@@ -87,7 +91,14 @@ impl YoQuery {
                         query.username = Some(value.to_string())
                     },
                     "link" => {
-                        query.accessory = Some(Accessory::Link(value.to_string()))
+                        // let decoded_url = url::decode(value.to_string());
+                        let decoded_url_bytes = percent_encoding::percent_decode(value.as_bytes());
+                        match String::from_utf8(decoded_url_bytes) {
+                            Ok(url) => {
+                                query.accessory = Some(Accessory::Link(url))
+                            },
+                            Err(_) => { }
+                        }
                     },
                     "location" => {
                         let coordinate = split_string_into_pair(value, ';');
