@@ -7,7 +7,6 @@ extern crate iron;
 use iron::prelude::*;
 use iron::status;
 
-
 extern crate rustc_serialize;
 use rustc_serialize::json;
 
@@ -80,10 +79,15 @@ impl YoQuery {
         }
     }
 
-    fn from_raw_query(ref raw: &String) -> YoQuery {
+    fn from_raw_query(ref raw_query: &String) -> YoQuery {
         let mut query = YoQuery { username: None, accessory: None };
 
-        let params: Vec<&str> = raw.split("&").collect();
+        let decoded_query_bytes = percent_encoding::percent_decode(raw_query.as_bytes());
+        let decoded_query_string = match String::from_utf8(decoded_query_bytes) {
+            Ok(query) => { query },
+            Err(_)    => { "".to_string() }
+        };
+        let params: Vec<&str> = decoded_query_string.split("&").collect();
         for p in params {
             if let Some((key, value)) = split_string_into_pair(p, '=') {
                 match key {
@@ -91,7 +95,6 @@ impl YoQuery {
                         query.username = Some(value.to_string())
                     },
                     "link" => {
-                        // let decoded_url = url::decode(value.to_string());
                         let decoded_url_bytes = percent_encoding::percent_decode(value.as_bytes());
                         match String::from_utf8(decoded_url_bytes) {
                             Ok(url) => {
@@ -110,11 +113,11 @@ impl YoQuery {
                                 (Ok(lat), Ok(lng)) => {
                                         query.accessory = Some(Accessory::Location(lat, lng))
                                 },
-                                (_, _) => {}
+                                (_, _) => { }
                             }
                         }
                     },
-                    _ => { println!("key: {}, value: {}", key, value) }
+                    _ => { }
                 }
             }
         };
@@ -146,7 +149,6 @@ fn main() {
                             .body(&json)
                             .header(hyper::header::ContentType::json())
                             .send().unwrap();
-                        println!("{:?}", result);
 
                         Ok(Response::with((status::Ok, "Yo")))
                     }
